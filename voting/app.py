@@ -9,15 +9,15 @@ import logging
 import signal
 import sys
 
-optionA = "Dev"
-optionB = "Ops"
+optionA = "Futbol"
+optionB = "Soccer"
 name = optionA + " VS " + optionB
 
 redis = Redis(host="redis", db=0)
 app = Flask(__name__)
 
 
-@app.route("/", methods=['POST','GET'])
+@app.route("/", methods=['POST', 'GET'])
 def hello():
     try:
         votesB = redis.get(optionB) or 0
@@ -30,24 +30,28 @@ def hello():
             try:
                 votesA = redis.incr(optionA)
                 if int(votesB) > 0 and 'optionB' == request.cookies.get('vote'):
-                    votesB = redis.decr(optionB);
-                redis.publish('pubsub', '{"'+optionA+'":'+str(votesA)+', "'+optionB+'":'+str(votesB)+'}')
+                    votesB = redis.decr(optionB)
+                redis.publish(
+                    'pubsub', '{"' + optionA + '":' + str(votesA) + ', "' + optionB + '":' + str(votesB) + '}')
             except Exception as e:
                 print e
                 votesA = "<i>An error occured</i>"
-            resp = make_response(render_template('index.html', name=os.getenv('NAME', name), hostname=socket.gethostname(), optionA=optionA, optionB=optionB))
+            resp = make_response(render_template('index.html', name=os.getenv(
+                'NAME', name), hostname=socket.gethostname(), optionA=optionA, optionB=optionB))
             resp.set_cookie('vote', 'optionA')
             return resp
         if request.form['option'] == 'optionB':
             try:
                 votesB = redis.incr(optionB)
                 if int(votesA) > 0 and 'optionA' == request.cookies.get('vote'):
-                    votesA = redis.decr(optionA);
-                redis.publish('pubsub', '{"'+optionA+'":'+str(votesA)+', "'+optionB+'":'+str(votesB)+'}')
+                    votesA = redis.decr(optionA)
+                redis.publish(
+                    'pubsub', '{"' + optionA + '":' + str(votesA) + ', "' + optionB + '":' + str(votesB) + '}')
             except Exception as e:
                 print e
                 votesB = "<i>An error occured</i>"
-            resp = make_response(render_template('index.html', name=os.getenv('NAME', name), hostname=socket.gethostname(), optionA=optionA, optionB=optionB))
+            resp = make_response(render_template('index.html', name=os.getenv(
+                'NAME', name), hostname=socket.gethostname(), optionA=optionA, optionB=optionB))
             resp.set_cookie('vote', 'optionB')
             return resp
         else:
